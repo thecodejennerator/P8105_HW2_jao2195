@@ -45,8 +45,8 @@ mrtrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                mutate(SHEET_ID = "MISTER") %>%   # Creating new ID column to identify this sheet
                select(-x15, -x16)  %>%     # Omitting random blank columns X15 and X16 in dataset
                select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na() # Dropping rows that do not have dumpster specfic data
-  
+               drop_na() %>% # Dropping rows that do not have dumpster specfic data
+               month = month[as.numeric(month)] 
 #Viewing Mister Trash Wheel Data 
 
 
@@ -76,8 +76,8 @@ proftrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                janitor::clean_names() %>%    # Cleaning the data
                mutate(SHEET_ID = "PROFESSOR") %>%   # Creating new ID column to identify this sheet
                select(SHEET_ID, everything()) %>% # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na()# Dropping rows that do not have dumpster specific data
-  
+               drop_na() %>% # Dropping rows that do not have dumpster specific data
+               month = month[as.numeric(month)] 
 #Viewing ProfessorTrash Wheel Data 
 
 
@@ -93,8 +93,8 @@ gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx",
                janitor::clean_names() %>%    # Cleaning the data
                mutate(SHEET_ID = "GWYNNDA") %>%   # Creating new ID column to identify this sheet
                select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na()  # Dropping rows that do not have dumpster specific data
-             
+               drop_na() %>% # Dropping rows that do not have dumpster specific data
+               month = month[as.numeric(month)] # to change the column type. 
   
 #Viewing ProfessorTrash Wheel Data 
 
@@ -103,8 +103,64 @@ gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx",
 ### [Final Dataset] Merging of Three (3) Trashwheel Datasets (MISTER, PROFFESSOR, & GWYNNDA)
 ```{r}
 
-# all_three_trashwheels =
-#   bind_rows(mrtrashwheel,proftrashwheel, gwynndatrashwheel) 
-# 
+#Comnibing all 
+all_three_trashwheels =
+ bind_rows(mrtrashwheel,proftrashwheel, gwynndatrashwheel) 
+
 
 ```
+
+
+# Write a paragraph about these data; you are encouraged to use inline R. Be sure to note the number of observations in the resulting dataset, and give examples of key variables. For available data, what was the total weight of trash collected by Professor Trash Wheel? What was the total number of cigarette butts collected by Gwynnda in July of 2021?
+
+The number of observations in the merged datset is  `r nrow(all_three_trashwheels)`.
+The key variables in out dataset  are `r colnames(all_three_trashwheels)`.
+The total weight of trash collected by Professor Trashwheel was `r sum(all_three_trashwheels$weight_tons)`.
+The total number of cigarette butts by Gwynnda in July of 2021 was `r filter(all_three_trashwheels, SHEET_ID = "GWYNNDA"`.
+
+
+### Problem 3
+This problem uses data collected in an observational study to understand the trajectory of Alzheimer’s disease (AD) biomarkers. Study participants were free of Mild Cognitive Impairment (MCI), a stage between the expected cognitive decline of normal aging and the more serious decline of dementia, at the study baseline.
+
+Basic demographic information were measured at the study baseline. The study monitored the development of MCI and recorded the age of MCI onset during the follow-up period, with the last visit marking the end of follow-up. APOE4 is a variant of the apolipoprotein E gene, significantly associated with a higher risk of developing Alzheimer’s disease. The amyloid β
+ 42/40 ratio holds significant promise for diagnosing and predicting disease outcomes. This ratio undergoes changes over time and has been linked to the manifestation of clinical symptoms of Alzheimer’s disease.
+
+Import, clean, and tidy the dataset of baseline demographics. Ensure that sex and APOE4 carrier status are appropriate encoded (i.e. not numeric), and remove any participants who do not meet the stated inclusion criteria (i.e. no MCI at baseline). Discuss important steps in the import process and relevant features of the dataset. How many participants were recruited, and of these how many develop MCI? What is the average baseline age? What proportion of women in the study are APOE4 carriers?
+
+```{r}
+#### Importing, Cleaning, and Organizing MCI baseline data
+# Sex and APOE4 recoded
+
+baseline_mci = read_csv("MCI_baseline.csv",
+                skip=1) %>% 
+                janitor::clean_names() %>% 
+                mutate (sex = ifelse(sex == 1, "MALE", "FEMALE"), 
+                  apoe4 = ifelse(apoe4 == 1, "GENE PRESENT", "GENE NOT PRESENT") )
+
+#Important steps in the import process is to skip a row to retrive the data properly. 
+#Relavant fetures of the dataset include the gender, presence or absence of gene, age at onset, education, and current ages. There were 483 participants recruited. 
+
+```
+
+
+Similarly, import, clean, and tidy the dataset of longitudinally observed biomarker values; comment on the steps on the import process and the features of the dataset.
+
+```{r}
+amyloid_mci<- read_csv("mci_amyloid.csv",
+              skip=1) %>% 
+              janitor::clean_names() %>% 
+              rename(ID=study_id) 
+
+View(amyloid_mci)
+
+#Imported 
+```
+
+
+Check whether some participants appear in only the baseline or amyloid datasets, and comment on your findings. Combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained, and briefly describe the resulting dataset; export the result as a CSV to your data directory.
+
+
+
+###############################
+####   End Of Homework 2   ####
+###############################
