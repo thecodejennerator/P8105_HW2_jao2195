@@ -2,156 +2,109 @@
 title: "P8105_HW2_jao2195"
 output: github_document
 ---
+### Problem 1
+This problem uses the FiveThirtyEight data; these data were gathered to create the interactive graphic on this page. In particular, we’ll use the data in pols-month.csv, unemployment.csv, and snp.csv. Our goal is to merge these into a single data frame using year and month as keys across datasets.
 
-### Problem 1.1 - Install Packages / Load Libraries
+First, clean the data in pols-month.csv. Use separate() to break up the variable mon into integer variables year, month, and day; replace month number with month name; create a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
 
-This problem focuses the use of inline R code, plotting, and the behavior of ggplot for variables of different types.
-Use the code below to download the a package containing the early_january_weather dataset:
+Second, clean the data in snp.csv using a similar process to the above. For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
 
-install.packages("moderndive").
+Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
 
-You only need to run this command once to install the package, and you can do so directly in the console. This code shouldn’t be executed by your RMarkdown file.
+Join the datasets by merging snp into pols, and merging unemployment into the result.
 
-Load the moderndive library, and use the following code to load the early_january_weather dataset:
+Write a short paragraph about these datasets. Explain briefly what each dataset contained, and describe the resulting dataset (e.g. give the dimension, range of years, and names of key variables).
 
-```{r, message=FALSE}
-#1. Installing Packages and Libraries 
+Note: we could have used a date variable as a key instead of creating year and month keys; doing so would help with some kinds of plotting, and be a more accurate representation of the data. Date formats are tricky, though. For more information check out the lubridate package in the tidyverse.
 
-# Packages already installed, previously. 
-# Loading Libraries
+
+
+### Problem 2
+This problem uses the Mr. Trash Wheel dataset, available as an Excel file on the course website.
+
+1) Read and clean the Mr. Trash Wheel sheet
+2) Specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel 
+use reasonable variable names
+3) Omit rows that do not include dumpster-specific data
+
+### [Dataset A] Mister Trashwheel Cleaning Process
+```{r}
+
+#Loading in Packages 
+library(readxl)
 library(moderndive)
 library(ggplot2)
 library(tidyverse)
 
-#2. Loading early_january_weather dataset from moderndive package.
-data(early_january_weather)
+#Reading/Cleaning/and Creating ID Variable for the sheet Mister Trash Wheel Data
+mrtrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx", 
+                sheet = 1,                   # Specifying Sheet in Excel File
+                skip = 1,                    # Using Skip argument to skip first header with image in sheet
+                 ) %>% 
+               janitor::clean_names() %>%    # Cleaning the data
+               mutate(SHEET_ID = "MISTER") %>%   # Creating new ID column to identify this sheet
+               select(-x15, -x16)  %>%     # Omitting random blank columns X15 and X16 in dataset
+               select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
+               drop_na() # Dropping rows that do not have dumpster specfic data
+  
+#Viewing Mister Trash Wheel Data 
 
-#3. Looking at help function to learn more about the variables in the dataset. 
-help(early_january_weather)
 
 ```
 
-### Problem 1.2 - Inline R code Dataset Discussion Short Description
-
-Write a short description of the dataset using inline R code accessing the dataset help file can be informative. In your discussion, please include:
-
-*the variables in this dataset, including names / values of important variables
-
-*the size of the dataset (using nrow and ncol)
-
-*the mean temperature
-
-################################################################################
-### My Short Description of Early January Weather Dataset (1.2)
-
-The Early January Weather data (early_january_weather) is a dataset that contains hourly meterological data for Laguardia (LGA), John F. Kennedy (JFK) , and Newark (EWR) Airports in the New York City area. This data is a subset of the nycflights13 dataset in R.  This dataset contains `r ncol(early_january_weather)` variables: `r colnames(early_january_weather)` and `r nrow(early_january_weather)` observations. Values of important variables in the dataset including but not limited to: Average Preciptation, which was `r round(mean(pull(early_january_weather, precip)))` inches. Maximum visibility in early January was `r max(pull(early_january_weather,visib))` miles. The mean (average) temperature in early January 2013 was `r round(mean(pull(early_january_weather, temp)))` degrees Fahrenheit !
-
-################################################################################
-### Problem 1.3 - Creating Scatterplot of Humidity/Temperature Over Time 
-
-Make a scatterplot of temp (y) vs time_hour (x); color points using the humid variable (adding color = ... inside of aes in your ggplot code should help). Describe patterns that are apparent in this plot.
-Export your scatterplot to your project directory using ggsave.
-
-
-```{r, message=FALSE}
-#1. Creating Scatterplot, storing in myplot object.
-myplot <-
-  ggplot(early_january_weather) + 
-  geom_point(aes(x= time_hour, y = temp, col= humid)) + 
-  labs(x="Time", y="Temperature (Fahrenheit, F)", col="Relative Humidity", 
-       title="Humidity/Temperature Over Time in Early January 2013 ") 
-
-#2. Printing myplot object to rendered document.
-myplot
-
-#3. Saving .png file version to plot to working directory (wd).
-ggsave("Temp_Humid_Scatterplot_Problem 1.png") 
-
-```
-
-################################################################################
-### My Short Description of the Scatterplot (1.3)
-
-During early January 2013, temperature ranged from `r round(min(pull(early_january_weather, temp)))` and `r round(max(pull(early_january_weather, temp)))`degrees Fahrenheit. 
-Temperature fluctuated multiple times but had general upward tread (increasing temperature with time). 
-In addition, humidity also increased with time, with humidity being the highest between January 11 - January 15th. 
-In general, as temperature increased, relative humidity increased.
-
-################################################################################
-################################################################################
-
-### Problem 2.1 
-
-This problem is intended to emphasize variable types and introduce coercion; some awareness of how R treats numeric, character, and factor variables is necessary for working with these data types in practice.
-
-Create a data frame comprised of:
-
-a random sample of size 10 from a standard Normal distribution
-a logical vector indicating whether elements of the sample are greater than 0
-a character vector of length 10
-a factor vector of length 10, with 3 different factor “levels”
-Try to take the mean of each variable in your dataframe. What works and what doesn’t?
-
-Hint: for now, to take the mean of a variable in a dataframe, you need to pull the variable out of the dataframe. Try loading the tidyverse and using the pull function.
-
-
+4) The data include a column for the (approximate) number of homes powered. This calculation is described in the Homes powered note, but not applied to every row in the dataset. Update the data to include a new homes_powered variable based on this calculation.
 ```{r}
 
+#Overwriting the existing mrtrashwheel "homes_powered" column with the correct calculations. 
+mrtrashwheel = mrtrashwheel %>%  
+                    mutate(homes_powered =(weight_tons*500)/30)
 
-jennsdataframe <- tibble (
-                    rand_sample = rnorm(10,0,1), 
-                    logical_vec = rand_sample>0,
-                    char_vec = c("Columbia","University","New","York",
-                                 "Manhattan","Brooklyn","Queens","Staten Island",
-                                 "Bronx","Long Island"), 
-                    factor_vec = factor(c("High", "Medium","Low", "Low", 
-                                   "High","Medium", "Low", "Low", 
-                                   "Medium", "High"), levels = c("Low", "Medium", "High")))
+# Checking out the change the the dataset.
+
+```
+
+
+5) Use a similar process to import, clean, and organize the data for Professor Trash Wheel and Gwynnda, and combine these with the Mr. Trash Wheel dataset to produce a single tidy dataset. To keep track of which Trash Wheel is which, you may need to add an additional variable to all datasets before combining.
+
+### [Dataset B] Professor Trashwheel Cleaning Process
+```{r}
+
+proftrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx", 
+                sheet = 2,                   # Specifying Sheet in Excel File
+                skip = 1,                    # Using Skip argument to skip first header with image in sheet
+                 ) %>% 
+               janitor::clean_names() %>%    # Cleaning the data
+               mutate(SHEET_ID = "PROFESSOR") %>%   # Creating new ID column to identify this sheet
+               select(SHEET_ID, everything()) %>% # Moving the Sheet ID to the beginning/ front of the dataset
+               drop_na()# Dropping rows that do not have dumpster specific data
   
-#Mean of random sample, rand_samp:                  
-rand <- mean(pull(jennsdataframe, rand_sample))
-
-#Mean of logical vector, logical_vec:  
-logic <- mean(pull(jennsdataframe, logical_vec))
-
-#Mean of character vector, char_vec:  
-char <- mean(pull(jennsdataframe, char_vec))
-
-#Mean of factor vector, factor_vec:  
-factor <- mean(pull(jennsdataframe, factor_vec))
+#Viewing ProfessorTrash Wheel Data 
 
 
 ```
-We can see that for:
 
-1) Random Sample - A mean of  **`r rand`** is generated for our random variable vector.A mean number is returned. This works.
-2) Logical Vector - A mean of  **`r logic`** is generated for our logical variable vector. A mean number is returned. This works. R can translate logical to numeric, as seen in error messages of 3 & 4 below.
-3) Character Vector - A mean of  **`r char`** is generated for our character variable vector. NA returned because Warning: argument is not numeric or logical.This does not work. Mean() only works on a numeric or logical type.
-4) Factor Vector  - A mean of  **`r factor`** is generated for our factor variable vector. NA returned because Warning: argument is not numeric or logical.This does not work. Mean() only works on a numeric or logical type.
+### [Dataset C] Gwynnda Trashwheel Cleaning Process
+```{r}
 
+gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx", 
+                sheet = 4,                   # Specifying Sheet in Excel File
+                skip = 1,                    # Using Skip argument to skip first header with image in sheet
+                 ) %>% 
+               janitor::clean_names() %>%    # Cleaning the data
+               mutate(SHEET_ID = "GWYNNDA") %>%   # Creating new ID column to identify this sheet
+               select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
+               drop_na()  # Dropping rows that do not have dumpster specific data
+             
+  
+#Viewing ProfessorTrash Wheel Data 
 
-#################################
-### Problem 2.2 
-In some cases, you can explicitly convert variables from one type to another. Write a code chunk that applies the as.numeric function to the logical, character, and factor variables (please show this chunk but not the output). What happens, and why? Does this help explain what happens when you try to take the mean?
-
-```{r, warning=FALSE}
-
-#Mean of logical vector, logical_vec:  
-logic_num <- mean(as.numeric(pull(jennsdataframe, logical_vec)))
-
-#Mean of character vector, char_vec:  
-char_num <- mean(as.numeric(pull(jennsdataframe, char_vec)))
-
-#Mean of factor vector, factor_vec:  
-factor_num <- mean(as.numeric(pull(jennsdataframe, factor_vec)))
 ```
 
-We can see that for the new as.numeric() coerced variables:
+### [Final Dataset] Merging of Three (3) Trashwheel Datasets (MISTER, PROFFESSOR, & GWYNNDA)
+```{r}
 
-1) Logical Vector - A mean of  **`r logic_num`** is generated for our vector. A mean number is returned. This happens because the logical values of TRUE and FALSE are converted to numerical 1s and 0s.  Yes this does explain what happens when we are trying to take the mean as the mean value is the average of the 0s and 1s in the vector. 
-2) Character Vector - A mean of  **`r char_num`** is generated for our vector. NA returned because Warning: NAs introduced by coercion. This happened because you cannot convert a character into a number. This does explain what happened when were trying to take the mean as we cannot compute a mean on characters. 
-3) Factor Vector  - A mean of  **`r factor_num`** is generated for our vector. A mean number is returned. This happens because the levels of the factors (high, med, low) are converted to numerical values (1,2,3) for each of the levels. Yes, this does explain what happens when we are trying to take the mean, as the mean value is the average of the levels of the factors in the vector. 
+# all_three_trashwheels =
+#   bind_rows(mrtrashwheel,proftrashwheel, gwynndatrashwheel) 
+# 
 
-###############################
-####   End Of Homework 1   ####
-###############################
+```
