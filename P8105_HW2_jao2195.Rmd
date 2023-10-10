@@ -2,23 +2,125 @@
 title: "P8105_HW2_jao2195"
 output: github_document
 ---
+## Homework 2 
+
+### Problem 0
+This “problem” focuses on structure of your submission, especially the use git and GitHub for reproducibility, R Projects to organize your work, R Markdown to write reproducible reports, relative paths to load data from local files, and reasonable naming structures for your files.
+
+To that end:
+
+-create a public GitHub repo + local R Project; we suggest naming this repo / directory -p8105_hw2_YOURUNI (e.g. p8105_hw2_ajg2202 for Jeff), but that’s not required
+
+-create a single .Rmd file named p8105_hw2_YOURUNI.Rmd that renders to github_document
+
+-create a subdirectory to store the local data files, and use relative paths to access these data files
+
+-submit a link to your repo via Courseworks
+
+-Your solutions to Problems 1 (not graded), 2, and 3 should be implemented in your .Rmd file, and your git commit history should reflect the process you used to solve these Problems.
+
+For this Problem, we will assess adherence to the instructions above regarding repo structure, git commit history, and whether we are able to knit your .Rmd to ensure that your work is reproducible. Adherence to appropriate styling and clarity of code will be assessed in Problems 1+ (only 2 and 3 will be graded).
+
+################################################################################
 ### Problem 1
 This problem uses the FiveThirtyEight data; these data were gathered to create the interactive graphic on this page. In particular, we’ll use the data in pols-month.csv, unemployment.csv, and snp.csv. Our goal is to merge these into a single data frame using year and month as keys across datasets.
 
 First, clean the data in pols-month.csv. Use separate() to break up the variable mon into integer variables year, month, and day; replace month number with month name; create a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
 
+```{r}
+
+#Loading in Packages 
+library(readxl)
+library(moderndive)
+library(ggplot2)
+library(tidyverse)
+library(readr)
+library(lubridate)
+library(magrittr)
+library(dplyr)
+
+pols_month =read_csv("pols-month.csv")
+#View(pols_month)
+
+## Checking the prez_gop column to determine who is Republican (1) or Not (0)
+
+##Checking/Making sure values of of 0 and 1.
+unique(pols_month$prez_gop)
+
+## Noticed that all the values are not 0s and 1s. Some are 2s.....
+prez2<- pols_month%>%
+  filter(prez_gop== 2)
+#View(prez2)
+# ^^ Looking/Googling at the 2s and the year to see who was US president during that year.
+# It was a Republican (checked online) so changing 2s to 1s.
+
+pols_month2 =read_csv("pols-month.csv") %>% 
+             janitor::clean_names() %>%    #Cleaning data
+             separate(mon,into = c("year", "month", "day")) %>%
+             mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%
+             mutate(month = month.name[month]) %>%
+             mutate(prez_gop = replace(prez_gop, prez_gop==2, 1 )) %>% #changing 2s to 1s per above
+             mutate(president = ifelse(prez_gop == '1', 'GOP', 'DEM'))%>% 
+             select(-day, -prez_gop, -prez_dem)
+
+#head(pols_month2)
+#View(pols_month2)
+#unique(pols_month2$prez_gop)
+
+```
+
 Second, clean the data in snp.csv using a similar process to the above. For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
+
+```{r}
+snp = read_csv("snp.csv") |> 
+  separate(date, into= c("month", "day", "year")) |>
+  mutate(year = as.numeric(year)) |>
+  mutate(year = if_else(year <= 15, year + 2000, year)) |>
+  mutate(year = if_else(year >= 15, year + 1900, year)) |>
+  select(year, month, close) 
+
+#class(snp$year)
+#unique(snp$year)
+#View(snp2)
+#left_join(x = _, y = month_df) %>% 
+```
+
 
 Third, tidy the unemployment data so that it can be merged with the previous datasets. This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
 
+```{r}
+unemployment = read_csv("unemployment.csv")
+
+unemployment = unemployment %>% 
+  rename(year = Year) %>% 
+  pivot_longer(Jan:Dec, 
+    names_to = "month_abb",
+    values_to = "unemployment" ) %>% 
+  select(year, month_abb, unemployment)
+
+#View(unemployment)
+```
+
 Join the datasets by merging snp into pols, and merging unemployment into the result.
 
+```{r}
+final_data = 
+  left_join(pols_month2, snp) |>
+  left_join(x = _, y = unemployment)
+
+#str(final_data)
+#View(final_data)
+```
+
+
 Write a short paragraph about these datasets. Explain briefly what each dataset contained, and describe the resulting dataset (e.g. give the dimension, range of years, and names of key variables).
+
+The `pols_month2` data has `r nrow(pols_month2)` observations and `r ncol(pols_month2)` variables and tells us about the party affiliation distribution (democrat or republican) for governors and senators for a given year from years `r pols_month2 |> pull(year) |> min()` to `r pols_month2 |> pull(year) |> max()`. It also tells us whether the sitting president was a democrat or republican. The `snp` data has `r nrow(snp)` observations and `r ncol(snp)` variables, ranging from years `r snp |> pull(year) |> min()` to `r snp |> pull(year) |> max()`. The `unemployment` data has `r nrow(unemployment)` observations and `r ncol(unemployment)` variables ranging from years `r unemployment |> pull(year) |> min()` to `r unemployment |> pull(year) |> max()`. In Januarys in or after 1975 in which a democrat was president, the **average unemployment rate was `r filter(final_data, month == "January", year >= 1975, president == "dem") |> pull(unemployment) |> mean() |> round(2)`**.  The average unemployment rate over the same time period in which a republican was president was `r filter(final_data, month == "January", year >= 1975, president == "gop") |> pull(unemployment) |> mean() |> round(2)`.
 
 Note: we could have used a date variable as a key instead of creating year and month keys; doing so would help with some kinds of plotting, and be a more accurate representation of the data. Date formats are tricky, though. For more information check out the lubridate package in the tidyverse.
 
 
-
+#############################################################################
 ### Problem 2
 This problem uses the Mr. Trash Wheel dataset, available as an Excel file on the course website.
 
@@ -29,13 +131,6 @@ use reasonable variable names
 
 ### [Dataset A] Mister Trashwheel Cleaning Process
 ```{r}
-
-#Loading in Packages 
-library(readxl)
-library(moderndive)
-library(ggplot2)
-library(tidyverse)
-
 #Reading/Cleaning/and Creating ID Variable for the sheet Mister Trash Wheel Data
 mrtrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx", 
                 sheet = 1,                   # Specifying Sheet in Excel File
@@ -45,11 +140,13 @@ mrtrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                mutate(SHEET_ID = "MISTER") %>%   # Creating new ID column to identify this sheet
                select(-x15, -x16)  %>%     # Omitting random blank columns X15 and X16 in dataset
                select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na() %>% # Dropping rows that do not have dumpster specfic data
-               month = month[as.numeric(month)] 
+               drop_na() %>% # Dropping rows that do not have dumpster specific data
+               mutate(year = as.numeric(year)) #changing from character to numeric/double to merge
+               
 #Viewing Mister Trash Wheel Data 
-
-
+#View(mrtrashwheel)
+#month = month[as.numeric(month)] 
+#class(mrtrashwheel$year)
 ```
 
 4) The data include a column for the (approximate) number of homes powered. This calculation is described in the Homes powered note, but not applied to every row in the dataset. Update the data to include a new homes_powered variable based on this calculation.
@@ -60,7 +157,7 @@ mrtrashwheel = mrtrashwheel %>%
                     mutate(homes_powered =(weight_tons*500)/30)
 
 # Checking out the change the the dataset.
-
+#View(mrtrashwheel)
 ```
 
 
@@ -76,10 +173,12 @@ proftrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                janitor::clean_names() %>%    # Cleaning the data
                mutate(SHEET_ID = "PROFESSOR") %>%   # Creating new ID column to identify this sheet
                select(SHEET_ID, everything()) %>% # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na() %>% # Dropping rows that do not have dumpster specific data
-               month = month[as.numeric(month)] 
+               drop_na() %>%  # Dropping rows that do not have dumpster specific data
+               mutate(sports_balls ="") %>% #Adding sportsball column for merge later; Does not contain sportballs column
+               relocate(sports_balls, .before = homes_powered) %>% 
+               mutate(sports_balls = as.numeric(sports_balls)) 
 #Viewing ProfessorTrash Wheel Data 
-
+#View(proftrashwheel)
 
 ```
 
@@ -94,73 +193,24 @@ gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx",
                mutate(SHEET_ID = "GWYNNDA") %>%   # Creating new ID column to identify this sheet
                select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
                drop_na() %>% # Dropping rows that do not have dumpster specific data
-               month = month[as.numeric(month)] # to change the column type. 
+               mutate(sports_balls ="") %>% #Adding sportsball column for merge later; Does not contain sportballs column
+               mutate(glass_bottles ="") %>% 
+               relocate(sports_balls, .before = homes_powered) %>% 
+               relocate(glass_bottles, .before = plastic_bags) %>% 
+               mutate(sports_balls = as.numeric(sports_balls)) %>% 
+               mutate(glass_bottles = as.numeric(glass_bottles))
   
-#Viewing ProfessorTrash Wheel Data 
+#Viewing Gwynnda Trash Wheel Data 
+#View(gwynndatrashwheel)
 
 ```
 
 ### [Final Dataset] Merging of Three (3) Trashwheel Datasets (MISTER, PROFFESSOR, & GWYNNDA)
 ```{r}
 
-#Comnibing all 
+#Combining all sheets! :)
 all_three_trashwheels =
  bind_rows(mrtrashwheel,proftrashwheel, gwynndatrashwheel) 
 
-
+#View(all_three_trashwheels)
 ```
-
-
-# Write a paragraph about these data; you are encouraged to use inline R. Be sure to note the number of observations in the resulting dataset, and give examples of key variables. For available data, what was the total weight of trash collected by Professor Trash Wheel? What was the total number of cigarette butts collected by Gwynnda in July of 2021?
-
-The number of observations in the merged datset is  `r nrow(all_three_trashwheels)`.
-The key variables in out dataset  are `r colnames(all_three_trashwheels)`.
-The total weight of trash collected by Professor Trashwheel was `r sum(all_three_trashwheels$weight_tons)`.
-The total number of cigarette butts by Gwynnda in July of 2021 was `r filter(all_three_trashwheels, SHEET_ID = "GWYNNDA"`.
-
-
-### Problem 3
-This problem uses data collected in an observational study to understand the trajectory of Alzheimer’s disease (AD) biomarkers. Study participants were free of Mild Cognitive Impairment (MCI), a stage between the expected cognitive decline of normal aging and the more serious decline of dementia, at the study baseline.
-
-Basic demographic information were measured at the study baseline. The study monitored the development of MCI and recorded the age of MCI onset during the follow-up period, with the last visit marking the end of follow-up. APOE4 is a variant of the apolipoprotein E gene, significantly associated with a higher risk of developing Alzheimer’s disease. The amyloid β
- 42/40 ratio holds significant promise for diagnosing and predicting disease outcomes. This ratio undergoes changes over time and has been linked to the manifestation of clinical symptoms of Alzheimer’s disease.
-
-Import, clean, and tidy the dataset of baseline demographics. Ensure that sex and APOE4 carrier status are appropriate encoded (i.e. not numeric), and remove any participants who do not meet the stated inclusion criteria (i.e. no MCI at baseline). Discuss important steps in the import process and relevant features of the dataset. How many participants were recruited, and of these how many develop MCI? What is the average baseline age? What proportion of women in the study are APOE4 carriers?
-
-```{r}
-#### Importing, Cleaning, and Organizing MCI baseline data
-# Sex and APOE4 recoded
-
-baseline_mci = read_csv("MCI_baseline.csv",
-                skip=1) %>% 
-                janitor::clean_names() %>% 
-                mutate (sex = ifelse(sex == 1, "MALE", "FEMALE"), 
-                  apoe4 = ifelse(apoe4 == 1, "GENE PRESENT", "GENE NOT PRESENT") )
-
-#Important steps in the import process is to skip a row to retrive the data properly. 
-#Relavant fetures of the dataset include the gender, presence or absence of gene, age at onset, education, and current ages. There were 483 participants recruited. 
-
-```
-
-
-Similarly, import, clean, and tidy the dataset of longitudinally observed biomarker values; comment on the steps on the import process and the features of the dataset.
-
-```{r}
-amyloid_mci<- read_csv("mci_amyloid.csv",
-              skip=1) %>% 
-              janitor::clean_names() %>% 
-              rename(ID=study_id) 
-
-View(amyloid_mci)
-
-#Imported 
-```
-
-
-Check whether some participants appear in only the baseline or amyloid datasets, and comment on your findings. Combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained, and briefly describe the resulting dataset; export the result as a CSV to your data directory.
-
-
-
-###############################
-####   End Of Homework 2   ####
-###############################
