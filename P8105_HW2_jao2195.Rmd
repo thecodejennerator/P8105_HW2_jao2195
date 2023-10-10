@@ -383,9 +383,9 @@ There were `r nrow(matches)` who matched between both amyloid and baseline datas
 
 
 ```{r}
-write.csv(matches, file = "/Users/jennifero./Downloads/2. F23 BIST P8105 Data Science /HW2/P8105_HW2_jao2195/matches.csv")
+write.csv(matches, file = "/Users/jennifero./Downloads/2. F23 BIST P8105 Data Science /HW2/P8105_HW2_jao2195/matches.csv") 
 ```
-
+ 
 ###############################
 ####   End Of Homework 2   ####
 ###############################
