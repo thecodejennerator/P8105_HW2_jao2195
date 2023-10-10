@@ -81,7 +81,7 @@ snp = read_csv("snp.csv") |>
 
 #class(snp$year)
 #unique(snp$year)
-#View(snp2)
+#View(snp)
 #left_join(x = _, y = month_df) %>% 
 ```
 
@@ -104,18 +104,13 @@ unemployment = unemployment %>%
 Join the datasets by merging snp into pols, and merging unemployment into the result.
 
 ```{r}
-final_data = 
-  left_join(pols_month2, snp) |>
-  left_join(x = _, y = unemployment)
+# final_data = 
+#   left_join(pols_month2, snp)
 
 #str(final_data)
 #View(final_data)
 ```
 
-
-Write a short paragraph about these datasets. Explain briefly what each dataset contained, and describe the resulting dataset (e.g. give the dimension, range of years, and names of key variables).
-
-The `pols_month2` data has `r nrow(pols_month2)` observations and `r ncol(pols_month2)` variables and tells us about the party affiliation distribution (democrat or republican) for governors and senators for a given year from years `r pols_month2 |> pull(year) |> min()` to `r pols_month2 |> pull(year) |> max()`. It also tells us whether the sitting president was a democrat or republican. The `snp` data has `r nrow(snp)` observations and `r ncol(snp)` variables, ranging from years `r snp |> pull(year) |> min()` to `r snp |> pull(year) |> max()`. The `unemployment` data has `r nrow(unemployment)` observations and `r ncol(unemployment)` variables ranging from years `r unemployment |> pull(year) |> min()` to `r unemployment |> pull(year) |> max()`. In Januarys in or after 1975 in which a democrat was president, the **average unemployment rate was `r filter(final_data, month == "January", year >= 1975, president == "dem") |> pull(unemployment) |> mean() |> round(2)`**.  The average unemployment rate over the same time period in which a republican was president was `r filter(final_data, month == "January", year >= 1975, president == "gop") |> pull(unemployment) |> mean() |> round(2)`.
 
 Note: we could have used a date variable as a key instead of creating year and month keys; doing so would help with some kinds of plotting, and be a more accurate representation of the data. Date formats are tricky, though. For more information check out the lubridate package in the tidyverse.
 
@@ -141,8 +136,19 @@ mrtrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                select(-x15, -x16)  %>%     # Omitting random blank columns X15 and X16 in dataset
                select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
                drop_na() %>% # Dropping rows that do not have dumpster specific data
-               mutate(year = as.numeric(year)) #changing from character to numeric/double to merge
-               
+               mutate(year = as.numeric(year)) %>%  #changing from character to numeric/double to merge
+               mutate(dumpster = as.numeric(dumpster)) %>% 
+               mutate(year = as.numeric(year)) %>% 
+               mutate(date = as.character(date)) %>% 
+               mutate(weight_tons = as.numeric(weight_tons)) %>% 
+               mutate(volume_cubic_yards = as.numeric(volume_cubic_yards)) %>% 
+              mutate(plastic_bottles = as.numeric(plastic_bottles)) %>% 
+              mutate(polystyrene = as.numeric(polystyrene)) %>% 
+              mutate(cigarette_butts= as.numeric(cigarette_butts)) %>% 
+              mutate(plastic_bags= as.numeric(plastic_bags)) %>% 
+              mutate(wrappers= as.numeric(wrappers)) %>% 
+               mutate(homes_powered= as.numeric(homes_powered))
+  
 #Viewing Mister Trash Wheel Data 
 #View(mrtrashwheel)
 #month = month[as.numeric(month)] 
@@ -176,7 +182,20 @@ proftrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                drop_na() %>%  # Dropping rows that do not have dumpster specific data
                mutate(sports_balls ="") %>% #Adding sportsball column for merge later; Does not contain sportballs column
                relocate(sports_balls, .before = homes_powered) %>% 
-               mutate(sports_balls = as.numeric(sports_balls)) 
+               mutate(sports_balls = as.numeric(sports_balls)) %>% 
+               mutate(dumpster = as.numeric(dumpster)) %>% 
+               mutate(year = as.numeric(year)) %>% 
+               mutate(date = as.character(date)) %>% 
+               mutate(weight_tons = as.numeric(weight_tons)) %>% 
+                mutate(volume_cubic_yards = as.numeric(volume_cubic_yards)) %>% 
+              mutate(plastic_bottles = as.numeric(plastic_bottles)) %>% 
+                 mutate(polystyrene = as.numeric(polystyrene)) %>% 
+                mutate(cigarette_butts= as.numeric(cigarette_butts)) %>% 
+                mutate(plastic_bags= as.numeric(plastic_bags)) %>% 
+                mutate(wrappers= as.numeric(wrappers)) %>% 
+                 mutate(homes_powered= as.numeric(homes_powered))
+  
+  
 #Viewing ProfessorTrash Wheel Data 
 #View(proftrashwheel)
 
@@ -198,7 +217,19 @@ gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx",
                relocate(sports_balls, .before = homes_powered) %>% 
                relocate(glass_bottles, .before = plastic_bags) %>% 
                mutate(sports_balls = as.numeric(sports_balls)) %>% 
-               mutate(glass_bottles = as.numeric(glass_bottles))
+               mutate(glass_bottles = as.numeric(glass_bottles)) %>% 
+               mutate(dumpster = as.numeric(dumpster)) %>% 
+               mutate(year = as.numeric(year)) %>% 
+               mutate(date = as.character(date)) %>% 
+               mutate(weight_tons = as.numeric(weight_tons)) %>% 
+               mutate(volume_cubic_yards = as.numeric(volume_cubic_yards)) %>%  
+               mutate(plastic_bottles = as.numeric(plastic_bottles)) %>% 
+               mutate(polystyrene = as.numeric(polystyrene)) %>% 
+              mutate(cigarette_butts= as.numeric(cigarette_butts)) %>% 
+              mutate(plastic_bags= as.numeric(plastic_bags)) %>% 
+              mutate(wrappers= as.numeric(wrappers)) %>% 
+              mutate(homes_powered= as.numeric(homes_powered))
+  
   
 #Viewing Gwynnda Trash Wheel Data 
 #View(gwynndatrashwheel)
