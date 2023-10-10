@@ -288,3 +288,79 @@ Basic demographic information were measured at the study baseline. The study mon
 
 Import, clean, and tidy the dataset of baseline demographics. Ensure that sex and APOE4 carrier status are appropriate encoded (i.e. not numeric), and remove any participants who do not meet the stated inclusion criteria (i.e. no MCI at baseline). Discuss important steps in the import process and relevant features of the dataset. How many participants were recruited, and of these how many develop MCI? What is the average baseline age? What proportion of women in the study are APOE4 carriers?
 
+  ################################################################################
+### Problem 3
+This problem uses data collected in an observational study to understand the trajectory of Alzheimer’s disease (AD) biomarkers. Study participants were free of Mild Cognitive Impairment (MCI), a stage between the expected cognitive decline of normal aging and the more serious decline of dementia, at the study baseline.
+
+Basic demographic information were measured at the study baseline. The study monitored the development of MCI and recorded the age of MCI onset during the follow-up period, with the last visit marking the end of follow-up. APOE4 is a variant of the apolipoprotein E gene, significantly associated with a higher risk of developing Alzheimer’s disease. The amyloid β
+42/40 ratio holds significant promise for diagnosing and predicting disease outcomes. This ratio undergoes changes over time and has been linked to the manifestation of clinical symptoms of Alzheimer’s disease.
+
+Import, clean, and tidy the dataset of baseline demographics. Ensure that sex and APOE4 carrier status are appropriate encoded (i.e. not numeric), and remove any participants who do not meet the stated inclusion criteria (i.e. no MCI at baseline). Discuss important steps in the import process and relevant features of the dataset. How many participants were recruited, and of these how many develop MCI? What is the average baseline age? What proportion of women in the study are APOE4 carriers?
+  
+```{r}
+#### Importing, Cleaning, and Organizing MCI baseline data
+# Sex and APOE4 recoded
+
+baseline_mci = read_csv("MCI_baseline.csv", #importing
+               skip=1) %>% 
+               janitor::clean_names() %>% #cleaning
+               mutate (sex = ifelse(sex == 1, "MALE", "FEMALE"), #making columns not numeric
+              apoe4 = ifelse(apoe4 == 1, "GENE PRESENT", "GENE NOT PRESENT") ) %>% #making columns not numeric
+               mutate(age_at_onset= as.numeric(age_at_onset)) #coercing NAs, numeric for calculations
+
+#those who met baseline criteria
+baseline_mci_criteria = baseline_mci %>% filter(age_at_onset!= "NA")
+
+#women with APOE4 gene
+women_in_dataset =  baseline_mci_criteria %>% filter(sex=="FEMALE")
+women_APOE4_carr = baseline_mci_criteria %>% filter(sex=="FEMALE") %>% filter(apoe4 == "GENE PRESENT")
+
+#proprtion of women in the dataset with the APOe4 gene
+prop_APOE4_carr= nrow(women_APOE4_carr)/nrow(women_in_dataset)
+
+#nrow(baseline_mci)
+#View(baseline_mci)
+#Important steps in the import process is to skip a row to retrive the data properly. 
+#Relavant fetures of the dataset include the gender, presence or absence of gene, age at onset, education, and current ages. There were 483 participants recruited. 
+
+```
+#Comments on Dataset baseline
+There was a total of `r nrow(baseline_mci)` participants recruited. 
+There were `r nrow(baseline_mci_criteria)` participants who developed MCI.
+The average baseline age for the participants who developed MCI was `r mean(baseline_mci_criteria$age_at_onset)`.
+The proportion of women in the study that were APOE4 carriers was `r prop_APOE4_carr`.
+
+
+Similarly, import, clean, and tidy the dataset of longitudinally observed biomarker values; 
+comment on the steps on the import process and the features of the dataset.
+
+```{r}
+amyloid_mci<- read_csv("mci_amyloid.csv", #importing data, skipping first text row that is not headers
+          skip=1) %>% 
+            janitor::clean_names() %>% #cleaning data headers
+            rename(id=study_id) %>% #renaming id col to match baseline dataset
+             mutate(time_2= as.numeric(time_2)) %>% 
+            mutate(time_4= as.numeric(time_4)) %>% 
+            mutate(time_6= as.numeric(time_6)) %>% 
+            mutate(time_8= as.numeric(time_8)) %>% 
+            mutate(baseline = as.numeric(baseline))
+#View(amyloid_mci)
+
+```
+
+Check whether some participants appear in only the baseline or amyloid datasets, and comment on your findings. Combine the demographic and biomarker datasets so that only participants who appear in both datasets are retained, and briefly describe the resulting dataset; export the result as a CSV to your data directory.
+
+#Comments on Dataset amyloid
+There was a total of `r nrow(amyloid_mci)` participants recruited. 
+The average amyloid at Time 2 was `r mean(amyloid_mci$time_2)`.
+The average amyloid at Time 4 was `r mean(amyloid_mci$time_2)`.
+The average amyloid at Time 6 was `r mean(amyloid_mci$time_2)`.
+The average amyloid at Time 8 was `r mean(amyloid_mci$time_2)`.
+
+```{r}
+# write.csv(MCI_df, file = "results/mci.csv")
+```
+
+###############################
+####   End Of Homework 2   ####
+###############################
