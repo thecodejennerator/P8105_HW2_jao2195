@@ -4,6 +4,8 @@ output: github_document
 ---
 ## Homework 2 
 
+
+################################################################################
 ### Problem 0
 This “problem” focuses on structure of your submission, especially the use git and GitHub for reproducibility, R Projects to organize your work, R Markdown to write reproducible reports, relative paths to load data from local files, and reasonable naming structures for your files.
 
@@ -135,7 +137,7 @@ mrtrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                mutate(SHEET_ID = "MISTER") %>%   # Creating new ID column to identify this sheet
                select(-x15, -x16)  %>%     # Omitting random blank columns X15 and X16 in dataset
                select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na() %>% # Dropping rows that do not have dumpster specific data
+          
                mutate(year = as.numeric(year)) %>%  #changing from character to numeric/double to merge
                mutate(dumpster = as.numeric(dumpster)) %>% 
                mutate(year = as.numeric(year)) %>% 
@@ -148,11 +150,18 @@ mrtrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
               mutate(plastic_bags= as.numeric(plastic_bags)) %>% 
               mutate(wrappers= as.numeric(wrappers)) %>% 
                mutate(homes_powered= as.numeric(homes_powered))
+
+# Dropping rows that do not have dumpster specific data
+nrow(mrtrashwheel)
+mrtrashwheel <- mrtrashwheel[-585,]
+
+#View(mrtrashwheel)
+
   
 #Viewing Mister Trash Wheel Data 
 #View(mrtrashwheel)
 #month = month[as.numeric(month)] 
-#class(mrtrashwheel$year)
+#class(mrtrashwheel)
 ```
 
 4) The data include a column for the (approximate) number of homes powered. This calculation is described in the Homes powered note, but not applied to every row in the dataset. Update the data to include a new homes_powered variable based on this calculation.
@@ -163,7 +172,7 @@ mrtrashwheel = mrtrashwheel %>%
                     mutate(homes_powered =(weight_tons*500)/30)
 
 # Checking out the change the the dataset.
-#View(mrtrashwheel)
+# View(mrtrashwheel)
 ```
 
 
@@ -179,8 +188,8 @@ proftrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                janitor::clean_names() %>%    # Cleaning the data
                mutate(SHEET_ID = "PROFESSOR") %>%   # Creating new ID column to identify this sheet
                select(SHEET_ID, everything()) %>% # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na() %>%  # Dropping rows that do not have dumpster specific data
-               mutate(sports_balls ="") %>% #Adding sportsball column for merge later; Does not contain sportballs column
+          
+               mutate(sports_balls ="NONE") %>% #Adding sportsball column for merge later; Does not contain sportballs column
                relocate(sports_balls, .before = homes_powered) %>% 
                mutate(sports_balls = as.numeric(sports_balls)) %>% 
                mutate(dumpster = as.numeric(dumpster)) %>% 
@@ -195,14 +204,19 @@ proftrashwheel<- read_excel("202309 Trash Wheel Collection Data.xlsx",
                 mutate(wrappers= as.numeric(wrappers)) %>% 
                  mutate(homes_powered= as.numeric(homes_powered))
   
-  
+# Dropping rows that do not have dumpster specific data
+nrow(proftrashwheel)
+proftrashwheel <- proftrashwheel [-107,]
+
+#View(proftrashwheel )
 #Viewing ProfessorTrash Wheel Data 
-#View(proftrashwheel)
+# View(proftrashwheel)
+# class(proftrashwheel)
 
 ```
 
 ### [Dataset C] Gwynnda Trashwheel Cleaning Process
-```{r}
+```{r, warning=FALSE}
 
 gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx", 
                 sheet = 4,                   # Specifying Sheet in Excel File
@@ -211,9 +225,9 @@ gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx",
                janitor::clean_names() %>%    # Cleaning the data
                mutate(SHEET_ID = "GWYNNDA") %>%   # Creating new ID column to identify this sheet
                select(SHEET_ID, everything()) %>%  # Moving the Sheet ID to the beginning/ front of the dataset
-               drop_na() %>% # Dropping rows that do not have dumpster specific data
-               mutate(sports_balls ="") %>% #Adding sportsball column for merge later; Does not contain sportballs column
-               mutate(glass_bottles ="") %>% 
+               # Dropping rows that do not have dumpster specific data
+               mutate(sports_balls ="NONE") %>% #Adding sportsball column for merge later; Does not contain sportballs column
+               mutate(glass_bottles ="NONE") %>% 
                relocate(sports_balls, .before = homes_powered) %>% 
                relocate(glass_bottles, .before = plastic_bags) %>% 
                mutate(sports_balls = as.numeric(sports_balls)) %>% 
@@ -228,9 +242,13 @@ gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx",
               mutate(cigarette_butts= as.numeric(cigarette_butts)) %>% 
               mutate(plastic_bags= as.numeric(plastic_bags)) %>% 
               mutate(wrappers= as.numeric(wrappers)) %>% 
-              mutate(homes_powered= as.numeric(homes_powered))
+              mutate(homes_powered= as.numeric(homes_powered)) 
+
+#nrow(gwynndatrashwheel)
+ gwynndatrashwheel <- gwynndatrashwheel[-156,]
+ gwynndatrashwheel <- gwynndatrashwheel[-157,]
   
-  
+#nrow(gwynndatrashwheel)
 #Viewing Gwynnda Trash Wheel Data 
 #View(gwynndatrashwheel)
 
@@ -243,5 +261,30 @@ gwynndatrashwheel <- read_excel("202309 Trash Wheel Collection Data.xlsx",
 all_three_trashwheels =
  bind_rows(mrtrashwheel,proftrashwheel, gwynndatrashwheel) 
 
-#View(all_three_trashwheels) 
+#View(all_three_trashwheels)
+# Filtering for Gywnnda
+gwnn_jul21<- all_three_trashwheels %>%
+  subset(SHEET_ID == "GWYNNDA") %>% 
+  subset(month== "July") %>% 
+  subset(year== "2021") 
+
+#View(gwnn_jul21)
 ```
+
+
+### Write a paragraph about these data; you are encouraged to use inline R. Be sure to note the number of observations in the resulting dataset, and give examples of key variables. For available data, what was the total weight of trash collected by Professor Trash Wheel? What was the total number of cigarette butts collected by Gwynnda in July of 2021?
+
+The number of observations in the merged datset is  `r nrow(all_three_trashwheels)`.
+The key variables in out dataset  are `r colnames(all_three_trashwheels[1:15])`.
+The total weight of trash collected by Professor Trashwheel was `r sum(all_three_trashwheels$weight_tons)`.
+The total number of cigarette butts by Gwynnda in July of 2021 was `r sum(gwnn_jul21$cigarette_butts)`. 
+
+################################################################################
+### Problem 3
+This problem uses data collected in an observational study to understand the trajectory of Alzheimer’s disease (AD) biomarkers. Study participants were free of Mild Cognitive Impairment (MCI), a stage between the expected cognitive decline of normal aging and the more serious decline of dementia, at the study baseline.
+
+Basic demographic information were measured at the study baseline. The study monitored the development of MCI and recorded the age of MCI onset during the follow-up period, with the last visit marking the end of follow-up. APOE4 is a variant of the apolipoprotein E gene, significantly associated with a higher risk of developing Alzheimer’s disease. The amyloid β
+42/40 ratio holds significant promise for diagnosing and predicting disease outcomes. This ratio undergoes changes over time and has been linked to the manifestation of clinical symptoms of Alzheimer’s disease.
+
+Import, clean, and tidy the dataset of baseline demographics. Ensure that sex and APOE4 carrier status are appropriate encoded (i.e. not numeric), and remove any participants who do not meet the stated inclusion criteria (i.e. no MCI at baseline). Discuss important steps in the import process and relevant features of the dataset. How many participants were recruited, and of these how many develop MCI? What is the average baseline age? What proportion of women in the study are APOE4 carriers?
+
